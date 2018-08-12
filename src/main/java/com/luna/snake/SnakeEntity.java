@@ -13,7 +13,7 @@ public class SnakeEntity {
 	 private List<Integer[]>  bodys=new LinkedList<>();
 	 private ArrayList<Integer[]>  removeNodes=new ArrayList<>();
 		private ArrayList<Integer[]>  addNodes=new ArrayList<>();
-	 private Long accountId;
+	 private String accountId;
 	 private String gameName;
 	 private Direction direction;
 	 private SnakeGameEngine engine;
@@ -23,23 +23,19 @@ public class SnakeEntity {
 	 private int dieIntegral;
 		private int killIntegral=0;
 		 public State state;
-	 public SnakeEntity(SnakeGameEngine engine,long accountId,int startPoint,int initBodySize,Direction direction){
+	 public SnakeEntity(SnakeGameEngine engine,String accountId,int startPoint,int initBodySize,Direction direction){
 		 this.engine=engine;
 		 this.accountId=accountId;
 		 this.direction=direction;
 		 state=State.inactive;
 		 this.startPoint=startPoint;
 		 this.initBodySize=initBodySize;
-		 
-		 
-		 
-		 
 	 }
 	
-	public Long getAccountId() {
+	public String getAccountId() {
 		return accountId;
 	}
-	public void setAccountId(Long accountId) {
+	public void setAccountId(String accountId) {
 		this.accountId = accountId;
 	}
 	public String getGameName() {
@@ -64,7 +60,7 @@ public class SnakeEntity {
 	}
 	
 	public void active(){
-		this.state=State.active;
+		this.state=State.alive;
 		logger.info("º§ªÓ¡Àid:{} name:{}",accountId,gameName);
 	}
 	

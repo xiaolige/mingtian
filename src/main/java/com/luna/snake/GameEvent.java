@@ -1,7 +1,7 @@
 package com.luna.snake;
 
 public class GameEvent {
-	 private Long accountId;
+	 private String accountId;
      private EventType eventType;
      private String description;
 	
@@ -10,11 +10,11 @@ public class GameEvent {
 		this.description = description;
 	}
 
-	public Long getAccountId() {
+	public String getAccountId() {
 		return accountId;
 	}
 
-	public void setAccountId(Long accountId) {
+	public void setAccountId(String accountId) {
 		this.accountId = accountId;
 	}
 	

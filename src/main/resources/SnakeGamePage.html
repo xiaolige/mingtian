@@ -23,7 +23,7 @@ var  index,layer,version,
         size=10,ctx=document.getElementById("canvas").getContext('2d');
 
 if('WebSocket'in window){
-    websocket=new WebSocket("ws://"+host+"/ws")
+    websocket=new WebSocket("ws://localhost:2048/ws")
     while(true){
         accountName=prompt("请输入你的游戏昵称","");
         if(accountName.length<=5){
@@ -128,7 +128,7 @@ function versionUpdateCheck(){
         return;
     }//删除过去版本
     if(dataQueues.length>0){
-        for(var i=dataQueues.length-1;i>=0;i--){
+        for(var i=dataQueues.length-1;i>=0;--i){
             if(dataQueues[i].version<=lastVersion){
                 dataQueues.splice(i,1);
             }
@@ -154,7 +154,7 @@ function versionUpdateCheck(){
     //定量更新
     if(lastVersion!=0){
         var nextVersionNumber=lastVersion+1;
-       var nextVersion=getVersion(nextVersionNumber){
+       var nextVersion=getVersion(nextVersionNumber);
         if(nextVersion!=null && nextVersion.time!=null){
             refresh(nextVersion);
             return;
@@ -167,7 +167,7 @@ function versionUpdateCheck(){
         }else  if(nextVersion!=null&& nextVersion.time==null){
             return;
         }
-     }
+
     }
 }
 function  getFullVersion(){

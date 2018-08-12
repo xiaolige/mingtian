@@ -2,7 +2,7 @@ package com.luna.snake;
 
 public class IntegralInfo {
 
-	 private Long accountId;
+	 private String accountId;
 	 private String gameName;
 	 private int dieIntegral;
 	 private Long lastVersion;
@@ -13,10 +13,10 @@ public class IntegralInfo {
 		this.lastVersion = lastVersion;
 	}
 		private int killIntegral=0;
-		public Long getAccountId() {
+		public String getAccountId() {
 			return accountId;
 		}
-		public void setAccountId(Long accountId) {
+		public void setAccountId(String accountId) {
 			this.accountId = accountId;
 		}
 		public String getGameName() {

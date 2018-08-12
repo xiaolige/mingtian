@@ -45,7 +45,7 @@ public class SnakeGameService {
 	     private SnakeGameEngine gameEngine;
 	     private ChannelGroup channels;
 	     public SnakeGameService(){
-	    	 gameEngine=new SnakeGameEngine(60,60,500);
+	    	 gameEngine=new SnakeGameEngine(70,70,500);
 	    	 channels=new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 	     }
 	    public void run(){
@@ -85,7 +85,8 @@ public class SnakeGameService {
 	                    pipeline.addLast("http-codec",new HttpServerCodec());
 	                    pipeline.addLast("aggregator",new HttpObjectAggregator(65536));
 	                    pipeline.addLast("http-chunked",new ChunkedWriteHandler());
-	                    pipeline.addLast("WebSoket-protocol",new WebSocketServerProtocolHandler(""));
+	                    pipeline.addLast("http_request",new HttpRequestHandler("/ws"));
+	                    pipeline.addLast("WebSoket-protocol",new WebSocketServerProtocolHandler("/ws"));
 	                    pipeline.addLast("WebSocket-reqeust",new SnakeGameHandler(channels,gameEngine));   
 	            	}
 

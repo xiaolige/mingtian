@@ -129,6 +129,7 @@ public class SnakeGameEngine {
 				break;
 			}
 		}
+		
 		ArrayList<Integer[]>  changeNodes=new ArrayList<>();
 		for(SnakeEntity snake: snakes.values()){
 			if(snake.isOffLine())
@@ -433,9 +434,12 @@ public class SnakeGameEngine {
 		int min=0;
 		Random random=new Random();
 		int startPoint=random.nextInt(max-min+1)+min;
-		SnakeEntity snake=new SnakeEntity(this,Integer.parseInt(accountId),startPoint,1,Direction.up);
+		SnakeEntity snake=new SnakeEntity(this,accountId,startPoint,1,Direction.up);
 		snake.setState(State.inactive);
 		snake.setGameName(gameName);
+		getMark(startPoint);
+		mapsMarks[startPoint].snakeNodes++;
+		snake.getBodys().add(new Integer[]{startPoint%mapWidth,startPoint/mapWidth});
 		snakes.put(accountId, snake);
 		
 	}
@@ -470,6 +474,7 @@ public class SnakeGameEngine {
 				}
 			}
 		}
+		getMark(releasePoint);
 		mapsMarks[releasePoint].footNode++;
 		Integer[]  point=new Integer[]{releasePoint%mapWidth,releasePoint/mapWidth};
 		Food food=new Food(point,1);

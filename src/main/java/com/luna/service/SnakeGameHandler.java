@@ -29,7 +29,7 @@ public class SnakeGameHandler  extends
 	}
 
 	@Override
-	protected void messageReceived(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
+	protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
 		Channel incoming=ctx.channel();
 		logger.debug("接受数据 地址：{}，id{},文本:{}",incoming.remoteAddress(),incoming.id().asShortText(),msg.text());
 		String cmdText=msg.text().trim();
@@ -96,6 +96,7 @@ public class SnakeGameHandler  extends
 		Channel incoming=ctx.channel();
 		logger.info("client:"+incoming.remoteAddress()+"在线");
 	}
+
 
 	
 	
