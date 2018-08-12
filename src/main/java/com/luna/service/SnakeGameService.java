@@ -6,6 +6,8 @@ import java.util.Arrays;
 import javax.xml.ws.spi.http.HttpHandler;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -41,11 +43,11 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
 public class SnakeGameService {
-
+	static final Logger logger=LoggerFactory.getLogger(SnakeGameService.class);
 	     private SnakeGameEngine gameEngine;
 	     private ChannelGroup channels;
 	     public SnakeGameService(){
-	    	 gameEngine=new SnakeGameEngine(70,70,500);
+	    	 gameEngine=new SnakeGameEngine(70,70,600);
 	    	 channels=new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 	     }
 	    public void run(){
@@ -54,19 +56,19 @@ public class SnakeGameService {
 
 				@Override
 				public void versionChange(VersionData changeData, VersionData currentData) {
-				     versionChange(changeData,currentData);
+					sendVersionData(changeData);
 					
 				}
 
 				@Override
 				public void statusChange(GameStatistics statistics) {
-					statusChange(statistics);
+					sendStatusData(statistics);
 					
 				}
 
 				@Override
 				public void noticeEvent(GameEvent[] events) {
-					noticeEvent(events);
+					sendEvent(events);
 					
 				}
 	    		
@@ -110,7 +112,7 @@ public class SnakeGameService {
 	    private void sendVersionData(VersionData data){
 	    	try{
 	    	   VersionData copy=new VersionData();
-				BeanUtils.copyProperties(data, copy);
+				BeanUtils.copyProperties(copy,data);
 	    	  String str=JSON.toJSONString(data);
 	    	  String prefix="version\r\n";
 	    	  String[] cmds,cmdDatas;
@@ -123,13 +125,13 @@ public class SnakeGameService {
 	    		     cmdDatas[cmdDatas.length-1]=cmd.getCmdData();
 	    		     copy.setCmds(cmds);
 	    		     copy.setCmdDatas(cmdDatas);
-	    		     channel.writeAndFlush(new TextWebSocketFrame(prefix)+JSON.toJSONString(copy)); 
+	    		     channel.writeAndFlush(new TextWebSocketFrame(prefix+JSON.toJSONString(copy))); 
 	    		  }else{
 	    			  channel.writeAndFlush(new TextWebSocketFrame(str));
 	    		  }
 	    	  }
 	    	}catch(Exception e){
-	    		
+	    		logger.error("·¢ËÍ°æ±¾Ê§°Ü",e);
 	    	}
 	    }
 	    private void sendEvent(GameEvent[] events){

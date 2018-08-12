@@ -88,7 +88,7 @@ function  VersionData(full){
 function  refresh(version){
     var data;
     for(var i=0;i<version.cmds.length;i++){
-       data=version.cmdDatas[i].split(",");
+       data=version.cmdDatas[i].split(',');
         for(var k=0;k<data.length;k+=2){
             draw(version.cmds[i],data[k],data[k+1]);
         }
@@ -192,15 +192,15 @@ function pushStatus(data){
     console.log('游戏状态信息变更：'+data);
     var  statusHtml;
     var  statistics= $.parseJSON(data);
-    $('#online_count').text(statistics.onlineCount);
+    $('#online_count').text(statistics.onLineCount);
     if(statistics.current !=null){
         $('#current_killer').text(statistics.current.killIntegral);
         $('#current_die').text(statistics.current.dieIntegral);
     }
     if(statistics.rankingList!=null){
-              var RankingHtml="";
+              var rankingHtml="";
         for(var i=0;i<statistics.rankingList.length;i++){
-            var  ranking=statitics.rankingList[i];
+            var  ranking=statistics.rankingList[i];
             rankingHtml+="<li>"+ranking.gameName+"击杀："+ranking.killIntegral+",死亡:"+ranking.dieIntegral+"</li>";
         }
         $("#ranking_list").html(rankingHtml);

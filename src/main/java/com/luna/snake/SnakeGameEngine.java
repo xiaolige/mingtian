@@ -39,7 +39,7 @@ public class SnakeGameEngine {
 	 private volatile LinkedList<VersionData>  historyVersionData=new LinkedList();
 	 private volatile VersionData currentMapData=null;
      private static final int historyVersionMax=20;
-     private ArrayList<Food> foods=new ArrayList<>();
+     private HashMap<String,Food> foods=new HashMap<String,Food>();
      private HashMap<String,SnakeEntity> snakes=new HashMap<>();
      private int footMaxSize=10;
      private ScheduledFuture<?>  stateFuture;
@@ -151,6 +151,7 @@ public class SnakeGameEngine {
 		
 		while(foods.size()<footMaxSize){
 			Food food=grantFood();
+			
 			changeNodes.add(food.point);
 		}
 		if(!changeNodes.isEmpty()){
@@ -413,8 +414,8 @@ public class SnakeGameEngine {
 	
 	
 	public class Food{
-		private Integer[] point;
-		private Integer type;
+	private Integer[] point;
+	private Integer type;
 	public Food(Integer[] point,int type){
 		this.point=point;
 		this.type=type;
@@ -430,16 +431,26 @@ public class SnakeGameEngine {
 	public void newSnake(String accountId, String gameName) {
 		
 		
-		int max=Math.min(mapWidth, mapHeight);
-		int min=0;
+		int birthPoint =-1;
 		Random random=new Random();
-		int startPoint=random.nextInt(max-min+1)+min;
-		SnakeEntity snake=new SnakeEntity(this,accountId,startPoint,1,Direction.up);
+		int start=random.nextInt(mapHeight*mapWidth-5)+4;
+		int nextCount=random.nextInt(50);
+		for(int i=start,n=0,m=0;i<mapsMarks.length&&m<mapsMarks.length;i++,m++){
+			if(mapsMarks[i]==null||mapsMarks[i].isEmpty()){
+				n++;
+				birthPoint=i;
+				if(n>=nextCount){
+					break;
+				}
+			}
+		}
+		/*getMark(birthPoint);
+		mapsMarks[birthPoint].snakeNodes++;
+		Integer[]  point=new Integer[]{birthPoint/mapWidth,birthPoint%mapWidth};*/
+		SnakeEntity snake=new SnakeEntity(this,accountId,birthPoint,1,Direction.up);
 		snake.setState(State.inactive);
 		snake.setGameName(gameName);
-		getMark(startPoint);
-		mapsMarks[startPoint].snakeNodes++;
-		snake.getBodys().add(new Integer[]{startPoint%mapWidth,startPoint/mapWidth});
+		snake.add(0,new Integer[]{birthPoint/mapWidth,birthPoint%mapWidth});
 		snakes.put(accountId, snake);
 		
 	}
@@ -457,7 +468,12 @@ public class SnakeGameEngine {
 	}
 	
 	public void digestionFood(SnakeEntity snake,Integer[] node){
-		snake.add(0,node);
+	    snake.getBodys().add(node);
+	//	snake.add(0,node);
+		getMark(node).footNode--;
+		getMark(node).snakeNodes++;
+		foods.remove(node[1]+","+node[0]);
+		
 		
 	};
 	public  Food grantFood(){
@@ -476,14 +492,15 @@ public class SnakeGameEngine {
 		}
 		getMark(releasePoint);
 		mapsMarks[releasePoint].footNode++;
-		Integer[]  point=new Integer[]{releasePoint%mapWidth,releasePoint/mapWidth};
+		Integer[]  point=new Integer[]{releasePoint/mapWidth,releasePoint%mapWidth};
 		Food food=new Food(point,1);
+		foods.put(point[1]+","+point[0],food);
 		return food;
 		
 	}
 	public  Mark getMark(Integer[] point){
 		
-	     Integer index=point[1]*mapWidth+point[0];
+	     Integer index=point[0]*mapWidth+point[1];
 		return getMark(index);
 	}
      

@@ -149,6 +149,7 @@ public class SnakeEntity {
     	if(engine.isMapRange(node)){
     		removeNodes.add(node);
     		engine.getMark(node).snakeNodes--;
+    		logger.info("É¾³ý½áµã x:{},y:{}",node[1],node[0]);
     	}
     	
     }
