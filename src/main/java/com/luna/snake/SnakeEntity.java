@@ -9,11 +9,33 @@ import org.slf4j.LoggerFactory;
 
 public class SnakeEntity {
 	 static final Logger logger=   LoggerFactory.getLogger(SnakeEntity.class);
-	 private Direction direction;
-	 private List<Integer[]>  bodys=new Lin
-			 kedList<>();
+	 
+	 private List<Integer[]>  bodys=new LinkedList<>();
+	 private ArrayList<Integer[]>  removeNodes=new ArrayList<>();
+		private ArrayList<Integer[]>  addNodes=new ArrayList<>();
 	 private Long accountId;
 	 private String gameName;
+	 private Direction direction;
+	 private SnakeGameEngine engine;
+	 private int startPoint;
+	 private int initBodySize;
+	 
+	 private int dieIntegral;
+		private int killIntegral=0;
+		 public State state;
+	 public SnakeEntity(SnakeGameEngine engine,long accountId,int startPoint,int initBodySize,Direction direction){
+		 this.engine=engine;
+		 this.accountId=accountId;
+		 this.direction=direction;
+		 state=State.inactive;
+		 this.startPoint=startPoint;
+		 this.initBodySize=initBodySize;
+		 
+		 
+		 
+		 
+	 }
+	
 	public Long getAccountId() {
 		return accountId;
 	}
@@ -26,8 +48,7 @@ public class SnakeEntity {
 	public void setGameName(String gameName) {
 		this.gameName = gameName;
 	}
-	private ArrayList<Integer[]>  removeNodes=new ArrayList<>();
-	private ArrayList<Integer[]>  addNodes=new ArrayList<>();
+	
 	public ArrayList<Integer[]> getAddNodes() {
 		return addNodes;
 	}
@@ -39,13 +60,19 @@ public class SnakeEntity {
 	}
 	public void grow(){
 		this.state=State.grow;
-		logger.info("id:{} name:{}",accountId,gameName);
+		logger.info("增长了id:{} name:{}",accountId,gameName);
 	}
+	
+	public void active(){
+		this.state=State.active;
+		logger.info("激活了id:{} name:{}",accountId,gameName);
+	}
+	
 	public void alive(){
 		this.state=State.alive;
 	}
 	public void die(){
-		int bodySize=bodys.sie();
+		int bodySize=bodys.size();
 		for(int i=0;i<bodys.size();i++){
 			removeToTail();
 		}
@@ -61,8 +88,6 @@ public class SnakeEntity {
 		this.state=State.offline;
 		logger.info("角色离线id:{},name:{}",accountId,gameName);
 	}
-	private int dieIntegral;
-	private int killIntegral=0;
 	
 	public ArrayList<Integer[]> getRemoveNodes() {
 		return removeNodes;
@@ -88,12 +113,36 @@ public class SnakeEntity {
 	public void setState(State state) {
 		this.state = state;
 	}
-	public State state;
+	
 	public  enum State{
-		inactive,alive,grow,dying,die,offline
+		inactive,alive,grow,dying,die,offline,active
 	}
     public enum Direction{
     	up,down,left,right;
+    }
+    public void resurgence(int startPoint,int initBodySize){
+    	if(!isDie()){
+    		throw new RuntimeException("未达到复活条件，角色必须为死亡状态");
+    	}
+    	state=State.inactive;
+    	this.startPoint=startPoint;
+    	this.initBodySize=initBodySize;
+    }
+    public void setDirection(Direction direction){
+    	if(this.direction==Direction.up&&direction==Direction.down){
+    		return;
+    	};
+    	if(this.direction==Direction.down&&direction==Direction.up){
+    		return;
+    	};
+    	if(this.direction==Direction.left&&direction==Direction.right){
+    		return;
+    	};
+    	if(this.direction==Direction.right&&direction==Direction.left){
+    		return;
+    	};
+    	logger.debug("改变snake方向 ID:{},当前方向:{}",accountId,direction.toString());
+    	this.direction=direction;
     }
     public void moveStep(){
     	addToHead();
@@ -129,12 +178,45 @@ public class SnakeEntity {
     	}
     	add(0,newFirst);
     }
-    private void add(int index,Integer[] point){
+    public List<Integer[]> getBodys() {
+		return bodys;
+	}
+
+	public void setBodys(List<Integer[]> bodys) {
+		this.bodys = bodys;
+	}
+
+	public SnakeGameEngine getEngine() {
+		return engine;
+	}
+
+	public void setEngine(SnakeGameEngine engine) {
+		this.engine = engine;
+	}
+
+	public Direction getDirection() {
+		return direction;
+	}
+
+	private void add(int index,Integer[] point){
     	bodys.add(index,point);
     	if(engine.isMapRange(point)){
     		engine.getMark(point).snakeNodes++;
     		addNodes.add(point);
     	}
     	logger.info("添加结点 x:{},y:{}",point[1],point[0]);
+    }
+    public Boolean isDie(){
+    	return this.state== State.die;
+    }
+    public Boolean isOffLine(){
+    	return this.state==State.offline;
+    }
+    public void flush(){
+    	addNodes.clear();
+    	removeNodes.clear();
+    }
+    public Integer[] getHead(){
+    	return this.bodys.get(0);
     }
 }
