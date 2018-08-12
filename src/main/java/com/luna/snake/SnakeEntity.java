@@ -198,7 +198,7 @@ public class SnakeEntity {
 		return direction;
 	}
 
-	private void add(int index,Integer[] point){
+	public void add(int index,Integer[] point){
     	bodys.add(index,point);
     	if(engine.isMapRange(point)){
     		engine.getMark(point).snakeNodes++;

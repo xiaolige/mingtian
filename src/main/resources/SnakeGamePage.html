@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="./jquery.min.js"></script>
+</head>
+<body>
+<canvas  id="canvas" width="700" height="700"  style="background:black"></canvas>
+<div  style="position: relative;float:right;margin-right: 150px">
+    <ul>
+        <li>在线人数:<span style="color:blue" id="online_count"></span></li>
+        <li>你当前击杀:<span style="color: red" id="current_killer"></span>，死亡：<span  id="current_die" style="color: yellow"></span></li>
+    </ul>
+    <br>
+      <div>---------------------------排行榜---------------------------------------------</div>
+      <ul id="ranking_list"></ul>
+</div>
+<script type="text/javascript">
+var  index,layer,version,
+        websocket=null,host=window.location.host,_top=80,index=0,accountName="",connectionState,
+      lastTime=0,lastVersion=0,dataQueues =new Array(),
+        size=10,ctx=document.getElementById("canvas").getContext('2d');
+
+if('WebSocket'in window){
+    websocket=new WebSocket("ws://"+host+"/ws")
+    while(true){
+        accountName=prompt("请输入你的游戏昵称","");
+        if(accountName.length<=5){
+            break;
+        }else{
+            alert("名字太长了，必须在5个以内");
+        }
+    }
+}else{
+    alert("当前浏览器不支持WebSocket");
+}
+websocket.onerror=function(){}
+
+websocket.onopen=function(event){
+    websocket.send("JOIN:"+accountName);
+    connectionState="Connect";
+}
+websocket.onmessage=function(event){
+    var source=event.data;
+    var i=source.indexOf("\r\n");
+    var objData;
+    var method;
+    if(i<0){
+        return;
+    }
+    method=source.substr(0,i);
+    objData=source.substr(i+1);
+    if(method=="version"){
+        pushVersionData(objData);
+    }else if(method=="status"){
+        pushStatus(objData);
+    }else if(method=="event"){
+        noticeEvent(objData);
+    }
+}
+
+websocket.onclose= function(){
+    connectionState="Disconnect";
+}
+
+window.onbeforeunload=function(){
+    websocket.close();
+}
+
+function draw(color,x,y){
+    ctx.fillStyle=color;
+    ctx.fillRect(x*size,y*size,size,size);
+}
+document.onkeydown= function(e){
+    websocket.send("CONTROL:"+ e.keyCode);
+}
+function  VersionData(full){
+    this.version;
+    this.time;
+    this.full=full;
+    this.cmds=[];
+    this.cmdDatas=[];
+    this.requestTime= $.now();
+}
+
+
+function  refresh(version){
+    var data;
+    for(var i=0;i<version.cmds.length;i++){
+       data=version.cmdDatas[i].split(",");
+        for(var k=0;k<data.length;k+=2){
+            draw(version.cmds[i],data[k],data[k+1]);
+        }
+    }
+    dataQueues.splice($.inArray(version,dataQueues),1);
+    lastTime= $.now();
+    lastVersion=version.version;
+}
+
+
+setInterval(versionUpdateCheck,60);
+function pushVersionData(data){
+    var vd= $.parseJSON(data);
+    if(vd.version<=lastVersion){
+        return;
+    }
+    var localVersion= getFullVersion();
+    if(vd.full){
+        localVersion=getFullVersion();
+    }else{
+        localVersion=getVersion(vd.version);
+    }
+    if(localVersion==null){
+        localVersion=new VersionData(vd.full);
+        dataQueues.push(localVersion);
+    }
+    localVersion.version=vd.version;
+    localVersion.time=vd.time;
+    localVersion.full=vd.full;
+    localVersion.cmds=vd.cmds;
+    localVersion.cmdDatas=vd.cmdDatas;
+
+}
+function versionUpdateCheck(){
+    //检查链接状态
+    if(connectionState!="Connect"){
+        return;
+    }//删除过去版本
+    if(dataQueues.length>0){
+        for(var i=dataQueues.length-1;i>=0;i--){
+            if(dataQueues[i].version<=lastVersion){
+                dataQueues.splice(i,1);
+            }
+
+        }
+    }
+
+    //全量更新
+      var  fullVersion=getFullVersion();
+    if(fullVersion!=null&&fullVersion.time!=null){
+        refresh(fullVersion);
+        return;
+    }else if(lastVersion==0&&fullVersion==null){
+        var vd=  new VersionData(true);
+        dataQueues.push(vd);
+        websocket.send("FULL:true");
+        return
+    }else if(fullVersion!=null &&fullVersion.time==null ){
+        return;
+    }
+
+
+    //定量更新
+    if(lastVersion!=0){
+        var nextVersionNumber=lastVersion+1;
+       var nextVersion=getVersion(nextVersionNumber){
+        if(nextVersion!=null && nextVersion.time!=null){
+            refresh(nextVersion);
+            return;
+        }else if(nextVersion==null && $.now()-lastTime){
+            nextVersion=new VersionData(false);
+            nextVersion.version=nextVersionNumber;
+            dataQueues.push(nextVersion);
+            websocket.send("QUANTITATIVE:"+(lastVersion+1));
+            return;
+        }else  if(nextVersion!=null&& nextVersion.time==null){
+            return;
+        }
+     }
+    }
+}
+function  getFullVersion(){
+    for(var i=0;i<dataQueues.length;i++){
+        if(dataQueues[i]!=null && dataQueues[i].full){
+            return dataQueues[i];
+        }
+
+    }
+    return null;
+}
+function  getVersion(version){
+    for(var i=0;i<dataQueues.length;i++){
+        if(dataQueues[i]!=null && dataQueues[i].version==version){
+            return dataQueues[i];
+        }
+
+    }
+    return null;
+}
+function pushStatus(data){
+    console.log('游戏状态信息变更：'+data);
+    var  statusHtml;
+    var  statistics= $.parseJSON(data);
+    $('#online_count').text(statistics.onlineCount);
+    if(statistics.current !=null){
+        $('#current_killer').text(statistics.current.killIntegral);
+        $('#current_die').text(statistics.current.dieIntegral);
+    }
+    if(statistics.rankingList!=null){
+              var RankingHtml="";
+        for(var i=0;i<statistics.rankingList.length;i++){
+            var  ranking=statitics.rankingList[i];
+            rankingHtml+="<li>"+ranking.gameName+"击杀："+ranking.killIntegral+",死亡:"+ranking.dieIntegral+"</li>";
+        }
+        $("#ranking_list").html(rankingHtml);
+    }
+
+
+}
+
+function noticeEvent(data){
+	  var eventData= $.parseJSON(data);
+	if(eventData.type=="die"){
+        layer.prompt({title:'随便写点啥，并确认',formType:2},function(text,index){
+            if(text=='xiaolige is god'){
+                websocket.send("RESURGENCE："+accountName);
+            }else{
+                layer.msg("游戏结束!");
+            }
+            layer.close(index);
+
+        })
+    }
+}
+</script>
+</body>
+</html>

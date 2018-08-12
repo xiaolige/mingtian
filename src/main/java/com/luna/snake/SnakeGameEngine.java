@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.luna.snake.SnakeEntity.Direction;
+import com.luna.snake.SnakeEntity.State;
 
 import static com.luna.snake.SnakeEntity.State.*;
 
@@ -227,7 +228,6 @@ public class SnakeGameEngine {
 		Integer[] head=snake.getHead();
 		if(head!=null){
 			cmd= new DrawingCommand("Lime",head[1],head[0]);
-			
 		}
 		return cmd;
 	}
@@ -270,11 +270,7 @@ public class SnakeGameEngine {
 	public boolean isMapRange(Integer[] point){
 		return point[0]>=0&&point[0]<mapHeight&&point[1]>=0&&point[1]<mapWidth;
 	}
-	private Mark getMark(Integer[] point){
-		
-	}
-		return getMark(index);
-	}
+
 	private Mark getMark(int index){
 		if(mapsMarks[index]==null){
 			mapsMarks[index]=new Mark();
@@ -321,26 +317,11 @@ public class SnakeGameEngine {
 					 break;
 				 }
 			  }
+		}
 		return result;
 	}
 		
-		public  Food grantFood(){
-			int releasePoint =-1;
-			Random random=new Random();
-			int start=random.nextInt(mapHeight*mapWidth-5)+4;
-			int nextCount=random.nextInt(50);
-			for(int i=start,n=0,m=0;i<mapsMarks.length&&m<mapsMarks.length;i++,m++){
-				if(mapsMarks[i]==null||mapsMarks[i].isEmpty()){
-					n++;
-					releasePoint=i;
-					if(n>=nextCount){
-						break;
-					}
-				}
-			}
-			return new Food();
-			
-		}
+		
 	    public VersionData encodeCurrentMapData(){
 	    	  StringBuilder body=new StringBuilder();
 			  StringBuilder food=new StringBuilder();
@@ -445,7 +426,17 @@ public class SnakeGameEngine {
 		public void noticeEvent(GameEvent[] events);
 	}
 
-	public void newSnake(String accountId, String cmdData) {
+	public void newSnake(String accountId, String gameName) {
+		
+		
+		int max=Math.min(mapWidth, mapHeight);
+		int min=0;
+		Random random=new Random();
+		int startPoint=random.nextInt(max-min+1)+min;
+		SnakeEntity snake=new SnakeEntity(this,Integer.parseInt(accountId),startPoint,1,Direction.up);
+		snake.setState(State.inactive);
+		snake.setGameName(gameName);
+		snakes.put(accountId, snake);
 		
 	}
 	public void controlSnake(String accountId, int keyCode) {
@@ -459,6 +450,36 @@ public class SnakeGameEngine {
            }else if(40== keyCode){
         	   snake.setDirection(Direction.down);
            }
+	}
+	
+	public void digestionFood(SnakeEntity snake,Integer[] node){
+		snake.add(0,node);
+		
+	};
+	public  Food grantFood(){
+		int releasePoint =-1;
+		Random random=new Random();
+		int start=random.nextInt(mapHeight*mapWidth-5)+4;
+		int nextCount=random.nextInt(50);
+		for(int i=start,n=0,m=0;i<mapsMarks.length&&m<mapsMarks.length;i++,m++){
+			if(mapsMarks[i]==null||mapsMarks[i].isEmpty()){
+				n++;
+				releasePoint=i;
+				if(n>=nextCount){
+					break;
+				}
+			}
+		}
+		mapsMarks[releasePoint].footNode++;
+		Integer[]  point=new Integer[]{releasePoint%mapWidth,releasePoint/mapWidth};
+		Food food=new Food(point,1);
+		return food;
+		
+	}
+	public  Mark getMark(Integer[] point){
+		
+	     Integer index=point[1]*mapWidth+point[0];
+		return getMark(index);
 	}
      
      
